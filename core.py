@@ -1,4 +1,5 @@
-import sys, threading, time
+#!/usr/bin/python
+import sys, threading, time, argparse
 import dmx, color
 
 NUM_STRANDS = 24 # Number of LED Strands
@@ -15,8 +16,9 @@ palettes = [
 ]
 
 class Program:
-    def __init__(self, port):
+    def __init__(self, **kwargs):
         self.widget = dmx.Widget(port)
+        self.timeout = 1/ freq
     
     def run(self):
         self.tick()
@@ -30,14 +32,13 @@ class Program:
         threading.Timer(timeout, self.tick).start()
 
 
-def main(argv=None):
-    try:
-        port = argv[1]
-        program = Program(port)
-    except:
-        print("Usage: python core.py {portname}")
-        return 1
+def main():
+    parser = argparse.ArgumentParser(description='Run the Idaho CORE project lighting script')
+    parser.add_argument('port', default='fake', help='The name of the serial port to run on (fake if you want to print to screen)')
+    parser.add_argument('-f', '--freq', metavar='Hz', default=1, type=int, help='The frequency, in Hertz, to run the update loop.')
+    options = parser.parse_args()
+    program = Program(options)
     program.run()
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())
