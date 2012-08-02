@@ -29,19 +29,13 @@ class Program:
         self.widget.send_dmx(packet)
         threading.Timer(timeout, self.tick).start()
 
-#def run(portName):
- #   print "Running..."
- #   tick()
-    #widget = dmx.Widget(portName)
-    #packet = dmx.Packet(bright_rainbow)
-    #widget.send_dmx(packet)
 
 def main(argv=None):
     try:
         port = argv[1]
         program = Program(port)
     except:
-        print "Usage: python core.py {portname}"
+        print("Usage: python core.py {portname}")
         return 1
     program.run()
 
