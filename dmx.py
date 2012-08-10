@@ -50,7 +50,7 @@ class Packet:
             
 
 if __name__ == "__main__":
-    widget = Widget('/dev/ttyS1')
+    widget = Widget('/dev/ttyUSB0')
     import color
     packet = Packet([color.Red])
     widget.send_dmx(packet)
