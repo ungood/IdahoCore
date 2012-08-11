@@ -34,7 +34,7 @@ White  = rgb(1, 1, 1)
 
 def rainbow_palette(n, saturation, luminosity):
     """Creates a palette of N colors, evenly spaced around the HSV color wheel"""
-    palette = [hsv(float(x) / n, 1, 1) for x in range(n)]
+    palette = [hsv(float(x) / n, saturation, luminosity/(float(x)+1)) for x in range(n)]
     return palette
     
 
