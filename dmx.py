@@ -54,9 +54,9 @@ if __name__ == "__main__":
     import color
     import time
     while True:
-        widget.send_dmx(Packet[color.Red, color.Green, color.Blue])
+        widget.send_dmx(Packet([color.Red, color.Green, color.Blue]))
         time.sleep(1)
-        widget.send_dmx(Packet[color.Green, color.Blue, color.Red])
+        widget.send_dmx(Packet([color.Green, color.Blue, color.Red]))
         time.sleep(1)
-        widget.send_dmx(Packet[color.Blue, color.Red, color.Green])
+        widget.send_dmx(Packet([color.Blue, color.Red, color.Green]))
         time.sleep(1)
