@@ -52,5 +52,11 @@ class Packet:
 if __name__ == "__main__":
     widget = Widget('/dev/ttyUSB0')
     import color
-    packet = Packet([color.Red])
-    widget.send_dmx(packet)
+    import time
+    while True:
+        widget.send_dmx(Packet[color.Red, color.Green, color.Blue])
+        time.sleep(1)
+        widget.send_dmx(Packet[color.Green, color.Blue, color.Red])
+        time.sleep(1)
+        widget.send_dmx(Packet[color.Blue, color.Red, color.Green])
+        time.sleep(1)
