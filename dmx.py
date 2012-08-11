@@ -47,16 +47,17 @@ class Packet:
             self.data.append(int(r * 255))
             self.data.append(int(g * 255))
             self.data.append(int(b * 255))
-            
+
+def rotate(l,n):
+    return l[n:] + l[:n]
 
 if __name__ == "__main__":
     widget = Widget('/dev/ttyUSB0')
     import color
     import time
+    palette = color.rainbow_palette(52, 1.0, 1.0)
+    i = 0
     while True:
-        widget.send_dmx(Packet([color.Red, color.Green, color.Blue]))
-        time.sleep(1)
-        widget.send_dmx(Packet([color.Green, color.Blue, color.Red]))
-        time.sleep(1)
-        widget.send_dmx(Packet([color.Blue, color.Red, color.Green]))
+        i = (i+1) % 52
+        widget.send_dmx(Packet([palette[i]])
         time.sleep(1)
