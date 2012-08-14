@@ -1,4 +1,5 @@
 from colorsys import *
+import random, math
 
 def rgb(r, g, b):
     return (r, g, b)
@@ -23,6 +24,11 @@ def blend(color1, color2, f):
     blue = lerp(b1, b2, f)
     return rgb(red, green, blue)
 
+def blend_palettes(pal1, pal2, f):
+    """Blends two palettes together"""
+    return [blend(pal1[i], pal2[i], f) for i in range(len(pal1))]
+        
+
 Red    = rgb(1, 0, 0)
 Green  = rgb(0, 1, 0)
 Blue   = rgb(0, 0, 1)
@@ -32,8 +38,106 @@ Purple = rgb(1, 0, 1)
 Black  = rgb(0, 0, 0)
 White  = rgb(1, 1, 1)
 
+
 def rainbow_palette(n, saturation, luminosity):
     """Creates a palette of N colors, evenly spaced around the HSV color wheel"""
     palette = [hsv(float(x) / n, saturation, luminosity) for x in range(n)]
     return palette
+
+
+# ===== TIME FLUCTUATORS ====
+
+class SineWave:
+    """Creates a class that will produce a sine wave with the following parameters:
+
+    min    -- the minimum value
+    max    -- the maximum value
+    period -- the number of units between one peak and the next.
+    """
+    def __init__(self, min, max, period):
+        self.coeff = (float(max) - min) / 2
+        self.mid = min + self.coeff
+        self.mult = math.pi * 2 / period
+
+    def __call__(self, x):
+        return math.sin(x * self.mult) * self.coeff + self.mid
+
+
+class Constant:
+    """Creates a callable that returns a constant value."""
+    def __init__(self, value):
+        self.value = float(value)
+
+    def __call__(self, x):
+        return self.value
+
+# ===== EFFECTS =====
+
+class PaletteBlender:
+    """Given a list of palettes, will blend from one palette to a randomly picked palette, over and over.
+    
+    calcPeriod -- should be a callable that returns a period at time t.
+        The period is the number of ms to blend palettes together.
+    """
+    
+    def __init__(self, palettes, calcPeriod):
+        random.seed()
+        self.palettes = palettes
+        self.current = self.getNextPalette()
+        self.next = self.getNextPalette()
+        self.position = 0.0
+        self.calcPeriod = calcPeriod
+
+    def getNextPalette(self):
+        return self.palettes[random.randint(0,len(self.palettes)-1)]
+
+    def update(self, time, delta):
+        """Gets the next frame, given that total time (in ms) has passed, and delta (ms) have passed since last update."""
+
+        period = self.calcPeriod(time)
+        velocity = delta / period
+        self.position += velocity
+        while self.position > 1:
+            self.current = self.next
+            self.next = self.getNextPalette()
+            self.position -= 1
+
+        return blend_palettes(self.current, self.next, self.position)
+
+
+class Rotator:
+    """Given a palette, will return a palette that has been rotated over time.
+   
+    calcPeriod -- a callable that returns the period (number of ms to move one position) 
+    """
+    def __init__(self, calcPeriod):
+        self.position = 0.0
+        self.calcPeriod = calcPeriod
+
+    def update(self, palette, time, delta):
+        period = self.calcPeriod(time)
+        velocity = delta / period
+        self.position += velocity
+
+        strands = len(palette)
+        result = []
+        for i in range(strands):
+            fpart, pos = math.modf(self.position)
+            cur = int(pos + i) % strands
+            next = int(cur + 1) % strands
+            result.append(blend(palette[cur], palette[next], abs(fpart)))
+
+        return result
+
+
+if __name__ == "__main__":
+    pal1 = [Red, Green, Blue]
+    pal2 = [Black, Black, Black]
+    sine = SineWave(50, 200, 10)
+    #blender = PaletteBlender([pal1, pal2], sine) # a palette blender that varies the speed of its blending over time (sinusoidally)
+    #for x in range(10):
+    #    print blender.update(x*20, 20)
+    rotator = Rotator(Constant(100)) # a rotator that rotates one strand in a constant 100 ms, negative values would rotate the opposite direction
+    for x in range(10):
+        print rotator.update(pal1, x*20, 20)
 

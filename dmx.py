@@ -59,5 +59,5 @@ if __name__ == "__main__":
     i = 0
     while True:
         i = (i+1) % 52
-        widget.send_dmx(Packet([palette[i]])
+        widget.send_dmx(Packet([palette[i]]))
         time.sleep(1)
