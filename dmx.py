@@ -55,9 +55,15 @@ if __name__ == "__main__":
     widget = Widget('/dev/ttyUSB0')
     import color
     import time
-    palette = color.rainbow_palette(52, 1.0, 1.0)
-    i = 0
-    while True:
-        i = (i+1) % 52
-        widget.send_dmx(Packet([palette[i]]))
-        time.sleep(1)
+    #Ex 1: Spread a rainbow across all the strands
+    numStrands=4
+    palette = color.rainbow_palette(numStrands, 1.0, 1.0)
+    widget.send_dmx(Packet(palette))
+
+    #Ex 2: Fade the first strand through the color spectrum in steps of 52
+    #palette = color.rainbow_palette(52, 1.0, 1.0)
+    #i = 0
+    #while True:
+        #i = (i+1) % 52
+        #widget.send_dmx(Packet([palette[i],palette[i],palette[i],palette[i]]))
+        # time.sleep(.05)
