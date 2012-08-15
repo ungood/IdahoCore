@@ -38,6 +38,8 @@ class Widget:
         msg = SC + bytes(packet.data)
         self.transmit(LABEL_OUTPUT_ONLY_SEND_DMX, msg)
 
+    def send_Palette(self, palette):
+        self.send_dmx(Packet(palette))
 
 class Packet:
     def __init__(self, colors):
