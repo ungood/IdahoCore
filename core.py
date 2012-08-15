@@ -16,7 +16,7 @@ palettes = [
 ]
 
 class Program:
-    def __init__(self, port,freq):
+    def __init__(self, port, freq):
         self.widget = dmx.Widget(port)
         self.timeout = 1/ freq
     
@@ -37,7 +37,7 @@ def main():
     parser.add_argument('port', default='fake', help='The name of the serial port to run on (fake if you want to print to screen)')
     parser.add_argument('-f', '--freq', metavar='Hz', default=1, type=int, help='The frequency, in Hertz, to run the update loop.')
     options = parser.parse_args()
-    program = Program(options)
+    program = Program(options.port,options.freq)
     program.run()
 
 if __name__ == "__main__":
