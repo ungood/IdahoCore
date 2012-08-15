@@ -16,7 +16,7 @@ palettes = [
 ]
 
 class Program:
-    def __init__(self, **kwargs):
+    def __init__(self, port,freq):
         self.widget = dmx.Widget(port)
         self.timeout = 1/ freq
     
