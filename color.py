@@ -44,6 +44,10 @@ def rainbow_palette(n, saturation, luminosity):
     palette = [hsv(float(x) / n, saturation, luminosity) for x in range(n)]
     return palette
 
+def mono_palette(n, c):
+    """Creates a palette of N instances of the same color"""
+    palette = [c for x in range(n)]
+    return palette
 
 # ===== TIME FLUCTUATORS ====
 
