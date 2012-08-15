@@ -46,8 +46,8 @@ class Packet:
         self.data = bytearray()
         for color in colors:
             r, g, b = color
-            self.data.append(int(r * 255))
             self.data.append(int(g * 255))
+            self.data.append(int(r * 255))
             self.data.append(int(b * 255))
 
 def rotate(l,n):
