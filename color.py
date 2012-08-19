@@ -53,6 +53,11 @@ class MonoPalette(Palette):
     def __init__(self, n, color):
         self.palette = [color for x in range(n)]
 
+class StripePalette(Palette):
+    """Creates a palette with one stripe of the foreground color, and the rest the background color."""
+    def __init__(self, n, foreground, background):
+        self.palette = foreground + [background for x in range(n-1)]
+
 class CandyPalette(Palette)
     """Creates a palette that repeats the given colors, like a candycane."""
     def __init__(self, n, colors)
