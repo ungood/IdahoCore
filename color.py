@@ -15,6 +15,8 @@ def lerp(a, b, f):
     delta = b - a
     return a + (delta * f)
 
+# ===== BLEND MODES ====
+
 def blend(color1, color2, f):
     """Blend two colors together, by some fraction between 0 (color1) and 1 (color2)"""
     r1, g1, b1 = color1
@@ -23,6 +25,16 @@ def blend(color1, color2, f):
     green = lerp(g1, g2, f)
     blue = lerp(b1, b2, f)
     return rgb(red, green, blue)
+
+def multiply(color1, color2):
+    r1, g1, b1 = color1
+    r2, g2, b2 = color2
+    return rgb(r1 * r2, g1 * g2, b1 *b2)
+
+def add(color1, color2):
+    r1, g1, b1 = color1
+    r2, g2, b2 = color2
+    return rgb(min(r1 + r2, 1.0), min(g1 + g2, 1.0), min(b1 + b2, 1.0))
 
 def blend_palettes(pal1, pal2, f):
     """Blends two palettes together"""
@@ -157,6 +169,39 @@ class Rotator:
 
         return result
 
+class BlendEffect:
+    def __init__(self, source1, source2, f):
+        self.source1 = source1
+        self.source2 = source2
+        self.f = f
+
+    def __call__(self, time, delta):
+        palette1 = self.source1(time, delta)
+        palette2 = self.source2(time, delta)
+        return blend_palettes(palette1, palette2, self.f)
+
+class AdditionEffect:
+    def __init__(self, source1, source2):
+        self.source1 = source1
+        self.source2 = source2
+
+    def __call__(self, time, delta):
+        palette1 = self.source1(time, delta)
+        palette2 = self.source2(time, delta)
+
+        return [add(palette1[x], palette2[x]) for x in range(len(palette1))]
+
+class MultiplyEffect:
+    def __init__(self, source1, source2):
+        self.source1 = source1
+        self.source2 = source2
+
+    def __call__(self, time, delta):
+        palette1 = self.source1(time, delta)
+        palette2 = self.source2(time, delta)
+
+        return [multiply(palette1[x], palette2[x]) for x in
+                range(len(palette1))]
 
 if __name__ == "__main__":
     pal1 = [Red, Green, Blue]

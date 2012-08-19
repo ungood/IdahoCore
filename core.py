@@ -16,6 +16,8 @@ palettes = {
 effects = dict()
 effects['fast_red_stripe']  = color.Rotator(palettes['red_stripe'], color.Constant(100))
 effects['slow_blue_stripe'] = color.Rotator(palettes['blue_stripe'], color.Constant(250))
+effects['test']             = color.AdditionEffect(effects['fast_red_stripe'],
+        effects['slow_blue_stripe'])
 
 sequences = dict()
 sequences.update(palettes)
