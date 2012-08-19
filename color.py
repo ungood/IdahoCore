@@ -36,18 +36,34 @@ Yellow = rgb(1, 1, 0)
 Cyan   = rgb(0, 1, 1)
 Purple = rgb(1, 0, 1)
 Black  = rgb(0, 0, 0)
-White  = rgb(1, 1, 1)
+White  = rgb(1, 1, 1) 
 
+# ===== PALETTES =====
+class Palette:
+    def __call__(self, time, delta):
+        return self.palette
 
-def rainbow_palette(n, saturation, luminosity):
+class RainbowPalette(Palette):
     """Creates a palette of N colors, evenly spaced around the HSV color wheel"""
-    palette = [hsv(float(x) / n, saturation, luminosity) for x in range(n)]
-    return palette
-
-def mono_palette(n, c):
+    def __init__(self, n, saturation, luminosity):
+        self.palette = [hsv(float(x) / n, saturation, luminosity) for x in range(n)]
+        
+class MonoPalette(Palette):
     """Creates a palette of N instances of the same color"""
-    palette = [c for x in range(n)]
-    return palette
+    def __init__(self, n, color):
+        self.palette = [color for x in range(n)]
+
+class CandyPalette(Palette)
+    """Creates a palette that repeats the given colors, like a candycane."""
+    def __init__(self, n, colors)
+        numColors = len(colors)
+        self.palette = [colors[x % numColors] for x in range(n)]
+
+class FadePalette(Palette)
+    """Creates a palette that fades the between two colors."""
+    def __init__(self, n, color1, color2):
+        halfway = float(n)/2
+        self.palette = [blend(color1, color2, abs(halfway - float(x)) / halfway) for x in range(n)]
 
 # ===== TIME FLUCTUATORS ====
 
