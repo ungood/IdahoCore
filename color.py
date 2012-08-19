@@ -56,11 +56,11 @@ class MonoPalette(Palette):
 class StripePalette(Palette):
     """Creates a palette with one stripe of the foreground color, and the rest the background color."""
     def __init__(self, n, foreground, background):
-        self.palette = foreground + [background for x in range(n-1)]
+        self.palette = [foreground] + [background for x in range(n-1)]
 
 class CandyPalette(Palette):
     """Creates a palette that repeats the given colors, like a candycane."""
-    def __init__(self, n, colors)
+    def __init__(self, n, colors):
         numColors = len(colors)
         self.palette = [colors[x % numColors] for x in range(n)]
 
@@ -135,11 +135,14 @@ class Rotator:
    
     calcPeriod -- a callable that returns the period (number of ms to move one position) 
     """
-    def __init__(self, calcPeriod):
+    def __init__(self, source, calcPeriod):
         self.position = 0.0
         self.calcPeriod = calcPeriod
+        self.source = source
 
-    def update(self, palette, time, delta):
+    def __call__(self, time, delta):
+        palette = self.source(time, delta)
+
         period = self.calcPeriod(time)
         velocity = delta / period
         self.position += velocity

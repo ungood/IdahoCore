@@ -19,8 +19,11 @@ class Widget:
         
     def __init__(self, port):
         try:
-            self.serialPort = Serial(port=port, baudrate=57600, timeout=1)
-            # self.serialPort = serial.Serial(port=port, baudrate=57600, timeout=1)
+            if(port == 'fake'):
+                import fakes
+                self.serialPort = fakes.Serial(port='/dev/fake')
+            else:
+                self.serialPort = Serial(port=port, baudrate=57600, timeout=1)
             print("Connected to USBDMX on port '%s'" % (self.serialPort.portstr))
         except:
             print("ERROR: Could not open port '%s'" % port)
@@ -38,7 +41,7 @@ class Widget:
         msg = SC + bytes(packet.data)
         self.transmit(LABEL_OUTPUT_ONLY_SEND_DMX, msg)
 
-    def send_Palette(self, palette):
+    def send_palette(self, palette):
         self.send_dmx(Packet(palette))
 
 class Packet:

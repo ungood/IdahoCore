@@ -17,7 +17,9 @@ effects = dict()
 effects['fast_red_stripe']  = color.Rotator(palettes['red_stripe'], color.Constant(100))
 effects['slow_blue_stripe'] = color.Rotator(palettes['blue_stripe'], color.Constant(250))
 
-sequences = palettes + effects
+sequences = dict()
+sequences.update(palettes)
+sequences.update(effects)
 
 class Program:
     def __init__(self, port, sequence, freq):
@@ -25,15 +27,20 @@ class Program:
         self.timeout = 1.0/float(freq)
         self.elapsed = 0.0
         self.lastTime = datetime.datetime.now()
+
+        if(sequence not in sequences):
+            print('Could not find sequenced named %s' % sequence)
+            sys.exit(1)
         self.sequence = sequences[sequence]
         print('Running %s sequence at timeout of %d seconds.' % (sequence, self.timeout))
     
     def run(self):
         while True:
             current = datetime.datetime.now()
-            delta = current - self.lastTime
+            delta = (current - self.lastTime).total_seconds() * 1000
             self.elapsed += delta
-            self.sequence(self.elapsed, delta)
+            palette = self.sequence(self.elapsed, delta)
+            self.widget.send_palette(palette)
             time.sleep(self.timeout)
 
 def main():
