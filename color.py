@@ -58,13 +58,13 @@ class StripePalette(Palette):
     def __init__(self, n, foreground, background):
         self.palette = foreground + [background for x in range(n-1)]
 
-class CandyPalette(Palette)
+class CandyPalette(Palette):
     """Creates a palette that repeats the given colors, like a candycane."""
     def __init__(self, n, colors)
         numColors = len(colors)
         self.palette = [colors[x % numColors] for x in range(n)]
 
-class FadePalette(Palette)
+class FadePalette(Palette):
     """Creates a palette that fades the between two colors."""
     def __init__(self, n, color1, color2):
         halfway = float(n)/2
