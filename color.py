@@ -15,6 +15,18 @@ def lerp(a, b, f):
     delta = b - a
     return a + (delta * f)
 
+def get(func_or_value, time, delta):
+    """Returns the result of calling func_or_value if func_or_value is callable,
+else returns it as a value.
+
+    The benefit of this is that we can pass either functions or constant values
+    to various effects and it will work the same."""
+    
+    try:
+        return func_or_value(time, delta)
+    except TypeError:
+        return func_or_value
+
 # ===== BLEND MODES ====
 
 def blend(color1, color2, f):
@@ -50,25 +62,30 @@ Purple = rgb(1, 0, 1)
 Black  = rgb(0, 0, 0)
 White  = rgb(1, 1, 1) 
 
+
 # ===== PALETTES =====
 class Palette:
     def __call__(self, time, delta):
         return self.palette
 
+
 class RainbowPalette(Palette):
     """Creates a palette of N colors, evenly spaced around the HSV color wheel"""
     def __init__(self, n, saturation, luminosity):
         self.palette = [hsv(float(x) / n, saturation, luminosity) for x in range(n)]
-        
+
+
 class MonoPalette(Palette):
     """Creates a palette of N instances of the same color"""
     def __init__(self, n, color):
         self.palette = [color for x in range(n)]
 
+
 class StripePalette(Palette):
     """Creates a palette with one stripe of the foreground color, and the rest the background color."""
     def __init__(self, n, foreground, background):
         self.palette = [foreground] + [background for x in range(n-1)]
+
 
 class CandyPalette(Palette):
     """Creates a palette that repeats the given colors, like a candycane."""
@@ -76,8 +93,9 @@ class CandyPalette(Palette):
         numColors = len(colors)
         self.palette = [colors[x % numColors] for x in range(n)]
 
+
 class FadePalette(Palette):
-    """Creates a palette that fades the between two colors."""
+    """Creates a palette that fades between two colors."""
     def __init__(self, n, color1, color2):
         halfway = float(n)/2
         self.palette = [blend(color1, color2, abs(halfway - float(x)) / halfway) for x in range(n)]
@@ -89,6 +107,7 @@ class SineWave:
 
     min    -- the minimum value
     max    -- the maximum value
+    :wq
     period -- the number of units between one peak and the next.
     """
     def __init__(self, min, max, period):
@@ -96,50 +115,49 @@ class SineWave:
         self.mid = min + self.coeff
         self.mult = math.pi * 2 / period
 
-    def __call__(self, x):
-        return math.sin(x * self.mult) * self.coeff + self.mid
+    def __call__(self, time, delta):
+        return math.sin(time * self.mult) * self.coeff + self.mid
 
-
-class Constant:
-    """Creates a callable that returns a constant value."""
-    def __init__(self, value):
-        self.value = float(value)
-
-    def __call__(self, x):
-        return self.value
 
 # ===== EFFECTS =====
 
-class PaletteBlender:
+
+class Blender:
     """Given a list of palettes, will blend from one palette to a randomly picked palette, over and over.
-    
-    calcPeriod -- should be a callable that returns a period at time t.
-        The period is the number of ms to blend palettes together.
+
+    stableTime -- the amount of time (in ms) to leave an effect running.
+    blendTime  -- the amount of time (in ms) to blend between effects.
+
     """
     
-    def __init__(self, palettes, calcPeriod):
+    def __init__(self, palettes, stableTime, blendTime):
         random.seed()
         self.palettes = palettes
-        self.current = self.getNextPalette()
-        self.next = self.getNextPalette()
-        self.position = 0.0
-        self.calcPeriod = calcPeriod
+        self.stableTime = stableTime
+        self.blendTime = blendTime
+        self.next = palettes[0]
+        self.updateNextPalette(0, 0)
 
-    def getNextPalette(self):
-        return self.palettes[random.randint(0,len(self.palettes)-1)]
+    def updateNextPalette(self, time, delta):
+        self.elapsed = 0
+        self.curStableTime = get(self.stableTime, time, delta)
+        self.curBlendTime = get(self.blendTime, time, delta)
+        self.current = self.next
+        self.next = self.palettes[random.randint(0, len(self.palettes) - 1)]
 
-    def update(self, time, delta):
+    def __call__(self, time, delta):
         """Gets the next frame, given that total time (in ms) has passed, and delta (ms) have passed since last update."""
 
-        period = self.calcPeriod(time)
-        velocity = delta / period
-        self.position += velocity
-        while self.position > 1:
-            self.current = self.next
-            self.next = self.getNextPalette()
-            self.position -= 1
+        self.elapsed += delta
 
-        return blend_palettes(self.current, self.next, self.position)
+        if(self.elapsed >= self.curStableTime + self.curBlendTime):
+            self.updateNextPalette(time, delta)
+
+        if(self.elapsed < self.curStableTime):
+            return self.current(time, delta)
+
+        position = float(self.elapsed - self.curStableTime) / self.curBlendTime
+        return blend_palettes(self.current(time, delta), self.next(time, delta), position)
 
 
 class Rotator:
@@ -147,15 +165,15 @@ class Rotator:
    
     calcPeriod -- a callable that returns the period (number of ms to move one position) 
     """
-    def __init__(self, source, calcPeriod):
+    def __init__(self, source, period):
         self.position = 0.0
-        self.calcPeriod = calcPeriod
+        self.period = period
         self.source = source
 
     def __call__(self, time, delta):
         palette = self.source(time, delta)
 
-        period = self.calcPeriod(time)
+        period = get(seslf.period, time, delta)
         velocity = delta / period
         self.position += velocity
 
@@ -169,6 +187,7 @@ class Rotator:
 
         return result
 
+
 class BlendEffect:
     def __init__(self, source1, source2, f):
         self.source1 = source1
@@ -176,9 +195,11 @@ class BlendEffect:
         self.f = f
 
     def __call__(self, time, delta):
+        f = get(self.f, time, delta)
         palette1 = self.source1(time, delta)
         palette2 = self.source2(time, delta)
         return blend_palettes(palette1, palette2, self.f)
+
 
 class AdditionEffect:
     def __init__(self, source1, source2):
@@ -190,6 +211,7 @@ class AdditionEffect:
         palette2 = self.source2(time, delta)
 
         return [add(palette1[x], palette2[x]) for x in range(len(palette1))]
+
 
 class MultiplyEffect:
     def __init__(self, source1, source2):
@@ -204,13 +226,9 @@ class MultiplyEffect:
                 range(len(palette1))]
 
 if __name__ == "__main__":
-    pal1 = [Red, Green, Blue]
-    pal2 = [Black, Black, Black]
-    sine = SineWave(50, 200, 10)
-    #blender = PaletteBlender([pal1, pal2], sine) # a palette blender that varies the speed of its blending over time (sinusoidally)
-    #for x in range(10):
-    #    print blender.update(x*20, 20)
-    rotator = Rotator(Constant(100)) # a rotator that rotates one strand in a constant 100 ms, negative values would rotate the opposite direction
-    for x in range(10):
-        print rotator.update(pal1, x*20, 20)
+    pal1 = MonoPalette(3, Red)
+    pal2 = MonoPalette(3, Blue)
+    blender = Blender([pal1, pal2], 500, 500)
+    for x in range(50):
+        print blender(x*75, 75)
 
