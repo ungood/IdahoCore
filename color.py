@@ -100,24 +100,88 @@ class FadePalette(Palette):
         halfway = float(n)/2
         self.palette = [blend(color1, color2, abs(halfway - float(x)) / halfway) for x in range(n)]
 
-# ===== TIME FLUCTUATORS ====
+# ===== WAVEFORMS ====
 
-class SineWave:
+class Sine:
     """Creates a class that will produce a sine wave with the following parameters:
 
     min    -- the minimum value
     max    -- the maximum value
-    :wq
     period -- the number of units between one peak and the next.
     """
     def __init__(self, min, max, period):
-        self.coeff = (float(max) - min) / 2
-        self.mid = min + self.coeff
-        self.mult = math.pi * 2 / period
+        self.min = min
+        self.max = max
+        self.period = period
 
     def __call__(self, time, delta):
-        return math.sin(time * self.mult) * self.coeff + self.mid
+        min = get(self.min, time, delta)
+        max = get(self.max, time, delta)
+        period = get(self.period, time, delta)
 
+        coeff = (float(max) - min) / 2
+        mid = min + coeff
+        mult = math.pi * 2 / period
+        
+        return coeff * math.sin(time * mult) + mid
+
+
+class Uniform:
+    """Creates a waveform that returns a (uniform) random number each time it is
+    called."""
+
+    def __init__(self, min, max):
+        self.min = min
+        self.max = max
+
+    def __call__(self, time, delta):
+        min = get(self.min, time, delta)
+        max = get(self.max, time, delta)
+
+        return random.uniform(min, max)
+
+
+class Sawtooth:
+    """Creates a sawtooth waveform."""
+    def __init__(self, min, max, period):
+        self.min = min
+        self.max = max
+        self.period = period
+
+    def __call__(self, time, delta):
+        min = get(self.min, time, delta)
+        max = get(self.max, time, delta)
+        period = get(self.period, time, delta)
+
+        delta = max - min
+        return delta * ((time / period) - math.floor(time / period)) + min
+
+
+class Beat:
+    """Creates a waveform that stays at min for some time, then ramps up to max
+    and back down to min.  A little like a heart beat."""
+    def __init__(self, min, max, minTime, maxTime):
+        self.min = min
+        self.max = max
+        self.minTime = minTime
+        self.maxTime = maxTime
+        self.elapsed = 0.0
+
+    def __call__(self, time, delta):
+        min = get(self.min, time, delta)
+        max = get(self.max, time, delta)
+        minTime = get(self.minTime, time, delta)
+        maxTime = get(self.maxTime, time, delta)
+
+        self.elapsed += delta
+
+        if(self.elapsed >= minTime + maxTime):
+            self.elapsed = 0
+
+        if(self.elapsed < minTime):
+            return min
+
+        return ((self.elapsed - minTime) / minTime) * (max - min)
 
 # ===== EFFECTS =====
 
@@ -226,9 +290,6 @@ class MultiplyEffect:
                 range(len(palette1))]
 
 if __name__ == "__main__":
-    pal1 = MonoPalette(3, Red)
-    pal2 = MonoPalette(3, Blue)
-    blender = Blender([pal1, pal2], 500, 500)
-    for x in range(50):
-        print blender(x*75, 75)
-
+    saw = Beat(1, 10, 4, 1)
+    for x in range(20):
+        print(saw(float(x) / 4, 1))
