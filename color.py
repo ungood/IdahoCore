@@ -16,7 +16,7 @@ def scale(c, factor):
 
 def lerp(a, b, f):
     """http://processing.org/reference/lerp_.html"""
-    delta = b - a
+    delta = float(b) - float(a)
     return a + (delta * f)
 
 def get(func_or_value, time, delta):
@@ -319,8 +319,6 @@ class LimitingEffect:
            
 
 if __name__ == "__main__":
-    palette = MonoPalette(3, White)
-    limiter = LimitingEffect(palette, 0.5)
-    result = limiter(0, 0)
-    print(result)
+    palette = FadePalette(8, Black, Red)
+    print(palette(0,0))
 
