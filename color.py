@@ -21,7 +21,7 @@ def lerp(a, b, f):
 
 def get(func_or_value, time, delta):
     """Returns the result of calling func_or_value if func_or_value is callable,
-else returns it as a value.
+    else returns it as a value.
 
     The benefit of this is that we can pass either functions or constant values
     to various effects and it will work the same."""
@@ -241,7 +241,7 @@ class Rotator:
     def __call__(self, time, delta):
         palette = self.source(time, delta)
 
-        period = get(seslf.period, time, delta)
+        period = get(self.period, time, delta)
         velocity = delta / period
         self.position += velocity
 
@@ -249,6 +249,9 @@ class Rotator:
         result = []
         for i in range(strands):
             fpart, pos = math.modf(self.position)
+            fpart = abs(fpart)
+            if(self.position < 0):
+                fpart = 1.0 - fpart
             cur = int(pos + i) % strands
             next = int(cur + 1) % strands
             result.append(blend(palette[cur], palette[next], abs(fpart)))
@@ -266,7 +269,7 @@ class BlendEffect:
         f = get(self.f, time, delta)
         palette1 = self.source1(time, delta)
         palette2 = self.source2(time, delta)
-        return blend_palettes(palette1, palette2, self.f)
+        return blend_palettes(palette1, palette2, f)
 
 
 class AdditionEffect:
@@ -320,3 +323,4 @@ if __name__ == "__main__":
     limiter = LimitingEffect(palette, 0.5)
     result = limiter(0, 0)
     print(result)
+
