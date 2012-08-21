@@ -10,6 +10,10 @@ def hsl(h, s, l):
 def hsv(h, s, v):
     return hsv_to_rgb(h, s, v)
 
+def scale(c, factor):
+    r, g, b = c
+    return rgb(r * factor, g * factor, b * factor)
+
 def lerp(a, b, f):
     """http://processing.org/reference/lerp_.html"""
     delta = b - a
@@ -288,6 +292,28 @@ class MultiplyEffect:
 
         return [multiply(palette1[x], palette2[x]) for x in
                 range(len(palette1))]
+
+
+class LimitingEffect:
+    def __init__(self, source, maxFactor):
+        self.maxFactor = maxFactor
+        self.source = source
+
+    def __call__(self, time, delta):
+        total = 0.0
+
+        palette = source(time, delta)
+        for col in palette:
+            r, g, b = col
+            total += r + g + b
+
+        maxAmount = len(palette) * maxFactor;
+        if(total > maxAmount):
+            scale = maxAmount / total;
+            palette = [mult(c, scale) for c in palette]
+
+        return palette
+           
 
 if __name__ == "__main__":
     saw = Beat(1, 10, 4, 1)
