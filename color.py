@@ -302,20 +302,21 @@ class LimitingEffect:
     def __call__(self, time, delta):
         total = 0.0
 
-        palette = source(time, delta)
+        palette = self.source(time, delta)
         for col in palette:
             r, g, b = col
             total += r + g + b
 
-        maxAmount = len(palette) * maxFactor;
+        maxAmount = len(palette) * 3 * self.maxFactor;
         if(total > maxAmount):
-            scale = maxAmount / total;
-            palette = [mult(c, scale) for c in palette]
+            factor = maxAmount / total;
+            palette = [scale(c, factor) for c in palette]
 
         return palette
            
 
 if __name__ == "__main__":
-    saw = Beat(1, 10, 4, 1)
-    for x in range(20):
-        print(saw(float(x) / 4, 1))
+    palette = MonoPalette(3, White)
+    limiter = LimitingEffect(palette, 0.5)
+    result = limiter(0, 0)
+    print(result)

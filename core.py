@@ -2,7 +2,8 @@
 import sys, threading, time, datetime, argparse
 import dmx, color
 
-NUM_STRANDS = 4 # Number of LED Strands
+NUM_STRANDS  = 4    # Number of LED Strands
+LIMIT_SCALE = 0.65 # The max power as a percentage (0-1.0) of all-white power draw to limit
 
 palettes = {
     'off'           : color.MonoPalette(NUM_STRANDS, color.Black),
@@ -33,11 +34,13 @@ class Program:
         if(sequence not in sequences):
             print('Could not find sequenced named %s' % sequence)
             sys.exit(1)
+
         self.sequence = sequences[sequence]
+        self.sequence = LimiterEffect(self.sequence, LIMIT_SCALE)
         print('Running %s sequence at timeout of %d seconds.' % (sequence, self.timeout))
     
-    def run(self):
-        while True:
+    def run(self, time):
+        while time <= 0 or self.elapsed < time:
             current = datetime.datetime.now()
             delta = (current - self.lastTime).total_seconds() * 1000
             self.elapsed += delta
@@ -50,10 +53,11 @@ def main():
     parser.add_argument('port', help='The name of the serial port to run on (fake if you want to print to screen)')
     parser.add_argument('-f', '--freq', metavar='Hz', default=1, type=int, help='The frequency, in Hertz, to run the update loop.')
     parser.add_argument('sequence', default='all', help='The sequence to run.')
+    parser.add_argument('-t', '--time', metavar='ms', default=0, type=int, help='The amount of time, in ms, to run the program before closing.  Will run forever if 0.')
     options = parser.parse_args()
 
     program = Program(options.port, options.sequence, options.freq)
-    return program.run()
+    return program.run(options.time)
 
 if __name__ == "__main__":
     sys.exit(main())
