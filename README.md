@@ -9,5 +9,5 @@ Usage: python core.py {portname}
 
 Videos
 ======
-* [https://www.youtube.com/watch?v=L3BO0HbOtJc]
-* [https://www.youtube.com/watch?v=VlaPkz5Tr9k]
+* https://www.youtube.com/watch?v=L3BO0HbOtJc
+* https://www.youtube.com/watch?v=VlaPkz5Tr9k
